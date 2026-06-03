@@ -15,6 +15,19 @@
 
 ---
 
+# 📍 PROGRESS — ทำถึงไหนแล้ว
+
+> **ทำเสร็จล่าสุด: task1** · **task ถัดไป: task2** (ดูเฉพาะ task ที่จะทำ — ประหยัด token ไม่ต้องอ่านที่ ✅ แล้ว)
+
+- [x] **task1** — Scaffold + Tooling (Next.js + TS strict + Tailwind v4 + shadcn) ✅
+- [ ] task2 — Type Definitions ← **next**
+- [ ] task3–4 · task5 · task6–9 · task10–12 · task13–15 · task16–18 · task19–20 (MVP-1)
+- [ ] task21–22 (DB) · task23–24 (persist) · task25 (pricing) · task26–27 (order/pay) · task28 (auth) · task29–30 (dashboards) · task31 (storage)
+
+**รวม 31 tasks · เสร็จ 1 · เหลือ 30**
+
+---
+
 # ⚙️ Architecture Decisions (อ่านก่อน — ทำไม stack ต่างจาก blueprint)
 
 | เรื่อง | blueprint v2 | **ที่ใช้จริง** | เหตุผล |
@@ -47,13 +60,15 @@
 
 > 📘 BP §Tech Stack, §UX/UI Design Direction
 
-## task1 — Project Scaffold + Tooling ✅ (เสร็จแล้ว)
+## task1 — Project Scaffold + Tooling ✅ DONE
 **Goal:** Next.js + strict TS + Tailwind v4 + shadcn รันได้
 **Files:** `package.json`, `tsconfig.json`, `next.config.ts`, `app/layout.tsx`, `app/page.tsx`, `app/globals.css`
-- App Router, TS strict (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
-- shadcn + `button dialog input select label sonner`
-- design tokens ใน `globals.css` (`--color-primary/accent/surface`, `--radius-base`)
-**Acceptance:** `npm run dev` / `npm run build` / `tsc --noEmit` ผ่านหมด
+- [x] App Router, TS strict (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
+- [x] shadcn + `button dialog input select label sonner`
+- [x] design tokens ใน `globals.css` (`--color-primary/accent/surface`, `--radius-base`)
+- [x] โครงโฟลเดอร์ครบ (app/editor, app/api/submit-design, components, stores, lib, types)
+**Acceptance:** [x] `npm run dev` · [x] `npm run build` · [x] `tsc --noEmit` ผ่านหมด
+> commit: `97e044a` · Next.js 16.2.7 (ไม่ downgrade เป็น 15)
 
 ---
 
