@@ -1,40 +1,61 @@
-# BRNDR
+# BRNDR — Custom Merch Design Editor
 
-> *Elegant. Refined. Distinctive.*
+เว็บออกแบบเสื้อแบบ Canva: เลือกทรงเสื้อ → ออกแบบบน canvas (ข้อความ + Google Fonts, อัปโหลด SVG/รูป, แก้ไขเต็มที่, สลับ front/back, เปลี่ยนสี) → ส่งแบบเข้าอีเมลทีมงาน
 
----
+> **ขอบเขต MVP-1:** frontend ล้วน (ยังไม่มี backend/DB/auth) — ดู `task_1.md` และ `dev-tasks.md`
 
-## Design System
+## Tech Stack
 
-### Color Palette
+| ส่วน | เทคโนโลยี |
+|------|-----------|
+| Framework | Next.js (App Router) |
+| Language | TypeScript (strict) |
+| Styling | TailwindCSS v4 + shadcn/ui |
+| Canvas | Fabric.js v6 |
+| State | Zustand |
+| Forms | React Hook Form + Zod |
+| Email | Resend (ผ่าน API route) |
 
-| Role | Color | Hex |
-|------|-------|-----|
-| Primary | Navy Blue | `#0A1F44` |
-| Secondary | Royal Blue | `#1B4FBF` |
-| Accent | Sky Blue | `#4A90D9` |
-| Background | Pure White | `#FFFFFF` |
-| Surface | Off White | `#F7F9FC` |
-| Text | Deep Navy | `#0D1B36` |
+## Design Tokens
 
-### Typography
+Black/White base + accent electric-blue `#00f0ff`, font sans (รวมฟอนต์ไทย) — แนว modern creator tool
 
-| Role | Font | Style |
-|------|------|-------|
-| Heading | Playfair Display | Serif — Bold, Elegant |
-| Subheading | Cormorant Garamond | Serif — Medium |
-| Body | EB Garamond | Serif — Regular |
-| UI / Label | Libre Baskerville | Serif — Regular |
+## Setup
 
-> All typefaces are **serif** — chosen for a refined, luxury feel.
+```bash
+npm install
+npm run dev          # http://localhost:3000
+```
 
-### Design Principles
+### Environment (`.env.local`)
 
-- **White space** — generous spacing for a clean, premium look
-- **Navy & White** — high contrast, trustworthy, sophisticated
-- **Serif type** — classic elegance, not modern-minimal
-- **Subtle blue accents** — depth without distraction
+```bash
+RESEND_API_KEY=re_...                 # server-side only
+ADMIN_EMAIL=sirichai.basz@gmail.com   # ปลายทางรับแบบเสื้อ
+```
 
----
+## Scripts
 
-*BRNDR — Brand Identity System*
+```bash
+npm run dev      # dev server
+npm run build    # production build
+npm run lint     # eslint
+npx tsc --noEmit # type check
+```
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── page.tsx                   # product selection
+│   ├── editor/                    # canvas editor ("use client")
+│   └── api/submit-design/         # ส่งอีเมลไป admin (server)
+├── components/
+│   ├── ui/                        # shadcn base
+│   ├── product/                   # ShirtPicker
+│   └── editor/                    # Canvas, Toolbar, panels
+├── stores/                        # useProductStore, useEditorStore
+├── lib/                           # fabric-helpers, google-fonts, templates
+└── types/                         # domain types
+```
