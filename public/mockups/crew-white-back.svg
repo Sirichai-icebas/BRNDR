@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <rect width="400" height="500" fill="none"/>
+  <path d="M80 120 L40 80 L120 50 Q200 30 280 50 L360 80 L320 120 L300 110 L300 420 Q300 440 200 440 Q100 440 100 420 L100 110 Z" fill="#f0f0f0" stroke="#ccc" stroke-width="2"/>
+  <path d="M40 80 L10 160 L80 170 L100 110 Z" fill="#f0f0f0" stroke="#ccc" stroke-width="2"/>
+  <path d="M360 80 L390 160 L320 170 L300 110 Z" fill="#f0f0f0" stroke="#ccc" stroke-width="2"/>
+  <rect x="130" y="130" width="140" height="200" fill="none" stroke="#aaa" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>
+  <text x="200" y="340" text-anchor="middle" font-size="11" fill="#bbb" font-family="sans-serif">crew / white — BACK</text>
+  <text x="200" y="358" text-anchor="middle" font-size="9" fill="#ccc" font-family="sans-serif">⚠ placeholder — replace with real asset</text>
+</svg>
