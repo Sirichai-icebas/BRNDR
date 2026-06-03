@@ -42,6 +42,7 @@
 | Pricing engine | Python | **TypeScript** (`src/lib/pricing.ts`) | เป็นเลขคณิตธรรมดา ไม่ต้องใช้ Python |
 | Task queue (Celery+Redis) | บังคับ | **Next `after()` / bg** จนกว่าจะจำเป็น | ดู Deferred |
 | DB / Auth / Storage / Email | Postgres / Clerk / R2 / Resend | **เหมือน blueprint** | ตามเดิม |
+| Design language | Electric-blue / modern | **Luxury minimal (Aimer-inspired)** — warm off-white `#F8F7F4` + near-black `#0D0D0D` + taupe accent `#B8A898` | ผู้ใช้เลือก |
 
 > domain model, DB schema, pricing logic, API contract, security checklist → **ยึดตาม blueprint** (แค่เปลี่ยนภาษา/เครื่องมือ)
 

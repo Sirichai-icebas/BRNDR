@@ -16,9 +16,23 @@
 | Forms | React Hook Form + Zod |
 | Email | Resend (ผ่าน API route) |
 
-## Design Tokens
+## Design System
 
-Black/White base + accent electric-blue `#00f0ff`, font sans (รวมฟอนต์ไทย) — แนว modern creator tool
+**Inspired by [aimer.com](https://aimer.com) — luxury minimal aesthetic**
+
+| Token | Value | Role |
+|-------|-------|------|
+| `--color-primary` | `#0D0D0D` | Near-black — CTA, headings |
+| `--color-accent` | `#B8A898` | Warm taupe — selected state |
+| `--color-surface` | `#F8F7F4` | Warm off-white — page background |
+| `--color-card` | `#FFFFFF` | Pure white — cards, panels |
+| `--color-muted` | `#9B9589` | Warm gray — secondary text |
+| `--color-border` | `#E8E6E1` | Subtle warm border |
+| `--radius-base` | `0.25rem` | Tight radius — refined, minimal |
+
+**Typography:** Geist Sans · tight letter-spacing · `-0.03em` headings · antialiased
+
+**Mood:** Clean luxury, generous whitespace, no neon, premium without being cold
 
 ## Setup
 
