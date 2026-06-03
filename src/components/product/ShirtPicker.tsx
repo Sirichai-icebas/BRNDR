@@ -42,11 +42,8 @@ export function ShirtPicker() {
       {/* Right — Controls */}
       <div className="w-full lg:w-[420px] bg-white flex flex-col justify-center px-10 py-16 gap-12">
 
-        {/* Brand + title */}
+        {/* Title */}
         <div>
-          <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[var(--color-muted)] mb-3">
-            BRNDR Studio
-          </p>
           <h1 className="text-3xl font-semibold tracking-tight leading-snug">
             เลือกแบบเสื้อ
           </h1>

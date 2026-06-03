@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Image from "next/image";
+import Link from "next/link";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,7 +29,26 @@ export default function RootLayout({
       lang="th"
       className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 h-14 bg-[var(--color-surface)]/90 backdrop-blur-sm border-b border-[var(--color-border)]">
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo.svg"
+              alt="BRNDR"
+              width={80}
+              height={24}
+              priority
+              className="h-5 w-auto"
+            />
+          </Link>
+          <nav className="flex items-center gap-6">
+            <Link href="/" className="text-[11px] font-medium tracking-[0.15em] uppercase text-[var(--color-muted)] hover:text-[var(--color-primary)] transition-colors">
+              Design
+            </Link>
+          </nav>
+        </header>
+        <div className="pt-14 flex flex-col flex-1">{children}</div>
+      </body>
     </html>
   );
 }
