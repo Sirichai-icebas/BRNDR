@@ -18,14 +18,17 @@
 
 # 📍 PROGRESS — ทำถึงไหนแล้ว
 
-> **ทำเสร็จล่าสุด: task1** · **task ถัดไป: task2** (ดูเฉพาะ task ที่จะทำ — ประหยัด token ไม่ต้องอ่านที่ ✅ แล้ว)
+> **ทำเสร็จล่าสุด: task5** · **task ถัดไป: task6** (ดูเฉพาะ task ที่จะทำ — ประหยัด token ไม่ต้องอ่านที่ ✅ แล้ว)
 
 - [x] **task1** — Scaffold + Tooling (Next.js + TS strict + Tailwind v4 + shadcn) ✅
-- [ ] task2 — Type Definitions ← **next**
-- [ ] task3–4 · task5 · task6–9 · task10–12 · task13–15 · task16–18 · task19–20 (MVP-1)
+- [x] **task2** — Type Definitions (`NeckType`, `ShirtColor`, `Side`, `DesignState`, `ContactInfo`) ✅
+- [x] **task3** — Zustand Stores (`useProductStore`, `useEditorStore`) + 8 Vitest tests ✅
+- [x] **task4** — Shirt Templates config + 8 SVG placeholder mockups ✅
+- [x] **task5** — Product Selection Page (`ShirtPicker` — เลือกคอ/สี + preview + CTA) ✅
+- [ ] task6–9 · task10–12 · task13–15 · task16–18 · task19–20 (MVP-1) ← **next: task6**
 - [ ] task21–22 (DB) · task23–24 (persist) · 🟡 task25 (pricing — `pricing.ts` config+calc เสร็จแล้ว, เหลือ DB/API/panel/test) · task26–27 (order/pay) · task28 (auth) · task29–30 (dashboards) · task31 (storage) · task32 (invoice/notify) · task33 (landing, post-MVP)
 
-**รวม 33 tasks · เสร็จ 1 · เหลือ 32**
+**รวม 33 tasks · เสร็จ 5 · เหลือ 28**
 
 ---
 
@@ -75,7 +78,7 @@
 
 ---
 
-## task2 — Type Definitions + Domain Models
+## task2 — Type Definitions + Domain Models ✅ DONE
 **Goal:** type กลางที่ทุก feature ใช้ร่วม (single source of truth)
 **Files:** `src/types/editor.ts`, `src/types/product.ts`
 **Depends on:** task1
@@ -103,7 +106,7 @@ export interface ContactInfo { name: string; phone: string; quantity: number; no
 
 ---
 
-## task3 — Zustand Stores (Product + Editor)
+## task3 — Zustand Stores (Product + Editor) ✅ DONE
 **Goal:** state แยก domain
 **Files:** `src/stores/useProductStore.ts`, `src/stores/useEditorStore.ts`
 **Depends on:** task2
@@ -115,7 +118,7 @@ export interface ContactInfo { name: string; phone: string; quantity: number; no
 
 ---
 
-## task4 — Shirt Templates Config + Mockup Assets
+## task4 — Shirt Templates Config + Mockup Assets ✅ DONE
 **Goal:** config mockup 4 แบบ + print area
 **Files:** `src/lib/shirt-templates.ts`, `public/mockups/*`
 **Depends on:** task2
@@ -129,7 +132,7 @@ export interface ContactInfo { name: string; phone: string; quantity: number; no
 
 # 🎨 GROUP B — Product Selection (task5)
 
-## task5 — Product Selection Page
+## task5 — Product Selection Page ✅ DONE
 > 📘 BP §Product Catalog (MVP: running shirts)
 **Goal:** หน้าแรกเลือกทรงคอ + สี → editor
 **Files:** `src/app/page.tsx`, `src/components/product/ShirtPicker.tsx`
