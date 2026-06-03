@@ -33,12 +33,12 @@ export default function RootLayout({
         <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 h-14 bg-[var(--color-surface)]/90 backdrop-blur-sm border-b border-[var(--color-border)]">
           <Link href="/" className="flex items-center">
             <Image
-              src="/logo.svg"
+              src="/logo.png"
               alt="BRNDR"
-              width={80}
-              height={24}
+              width={120}
+              height={40}
               priority
-              className="h-5 w-auto"
+              className="h-6 w-auto"
             />
           </Link>
           <nav className="flex items-center gap-6">
