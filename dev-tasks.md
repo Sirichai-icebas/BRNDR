@@ -10,6 +10,7 @@
 > - ทำตาม **Files**, **Depends on**, **Acceptance** ที่ระบุ
 > - TypeScript strict, ไม่มี `any`, ไม่ทิ้ง TODO ที่ทำให้ feature พัง
 > - หลังทำเสร็จ: commit `taskN: <สรุป>` และระบุว่าทดสอบยังไง
+> - **backend task (21–32): ทุกตัวต้องมี unit test** ของ service/route หลัก (Vitest) เป็นส่วนหนึ่งของ Acceptance
 > - asset ที่ยังไม่มี → ใช้ placeholder ที่ระบุ และโน้ตไว้
 > - **อย่าหยิบงานจาก Deferred section** (ท้ายไฟล์) — over-engineer
 
@@ -22,9 +23,9 @@
 - [x] **task1** — Scaffold + Tooling (Next.js + TS strict + Tailwind v4 + shadcn) ✅
 - [ ] task2 — Type Definitions ← **next**
 - [ ] task3–4 · task5 · task6–9 · task10–12 · task13–15 · task16–18 · task19–20 (MVP-1)
-- [ ] task21–22 (DB) · task23–24 (persist) · task25 (pricing) · task26–27 (order/pay) · task28 (auth) · task29–30 (dashboards) · task31 (storage)
+- [ ] task21–22 (DB) · task23–24 (persist) · task25 (pricing) · task26–27 (order/pay) · task28 (auth) · task29–30 (dashboards) · task31 (storage) · task32 (invoice/notify) · task33 (landing, post-MVP)
 
-**รวม 31 tasks · เสร็จ 1 · เหลือ 30**
+**รวม 33 tasks · เสร็จ 1 · เหลือ 32**
 
 ---
 
@@ -53,6 +54,8 @@
 | **Commerce** | J–K | task25–27 | Pricing + Orders + Payment |
 | **Account** | L–M | task28–30 | Auth + Customer/Admin dashboard |
 | **Assets** | N | task31 | R2 storage |
+| **Notify** | O | task32 | Invoice PDF + customer notifications |
+| **Marketing** | P | task33 | Landing page (post-MVP) |
 
 ---
 
@@ -363,7 +366,8 @@ export interface ContactInfo { name: string; phone: string; quantity: number; no
 - `POST /orders` (design+pricing+contact+size_breakdown S/M/L/XL), gen `order_number` (ORD-YYYY-####); `GET /orders/mine`, `GET /orders/{id}`; `POST /orders/{id}/reorder` clone design เป็น draft
 - checkout: RHF + Zod (เบอร์ไทย, ที่อยู่, event date, size breakdown)
 - 🔒 rate limit 10 orders/hr/user
-**Acceptance:** create order persist order+items, list/detail, reorder ได้ draft แก้ไขได้
+- 📧 ส่ง **order confirmation email → ลูกค้า** (Resend, Next `after()`) ทันทีหลังสร้าง order
+**Acceptance:** create order persist order+items, list/detail, reorder ได้ draft แก้ไขได้, ลูกค้าได้ confirmation email
 **Deliverable:** order + checkout จริง
 
 ## task27 — Payment: PromptPay + Slip Upload
@@ -426,6 +430,35 @@ export interface ContactInfo { name: string; phone: string; quantity: number; no
 
 ---
 
+# 🧾 GROUP O — Notifications & Invoice (task32)
+
+## task32 — Invoice PDF + Customer Status Notifications
+> 📘 BP §Order Dashboard (invoice download), §Email/Notification
+**Goal:** ลูกค้าได้ใบแจ้งหนี้ + รู้ความคืบหน้า order
+**Files:** `src/lib/invoice.ts`, `src/app/api/v1/orders/[id]/invoice/route.ts`, `src/lib/notifications.ts`
+**Depends on:** task26, task27, task30
+- gen **invoice PDF** จาก order (เลขที่/รายการ/total) — ใช้ lib เบาๆ (เช่น `@react-pdf/renderer` หรือ pdf-lib), ดาวน์โหลดจาก dashboard (task29)
+- **status notification → ลูกค้า**: เมื่อ payment approved / order shipped → ส่ง email (Resend) + tracking number
+- LINE Notify (admin) สำหรับ new order / payment received (📘 BP — customer LINE = Deferred)
+**Acceptance:** ดาวน์โหลด invoice PDF ถูกต้อง, payment approved/shipped → ลูกค้าได้อีเมล, unit test generator
+**Deliverable:** invoice + notification ครบ
+
+---
+
+# 🛬 GROUP P — Landing Page (task33, post-MVP)
+
+## task33 — Landing Page
+> 📘 BP §Landing Page · **เริ่มได้หลัง MVP-1 ส่งมอบ (task20)** — ไม่ block flow หลัก
+**Goal:** หน้าขายก่อนเข้า editor
+**Files:** `src/app/(marketing)/page.tsx` หรือย้าย product selection ไป `/design`
+**Depends on:** task5
+- sections: Hero (CTA + mockup + "ออกแบบและรู้ราคาทันที") · How It Works (4 ขั้น) · FAQ (delivery/min order/payment) · CTA
+- responsive, design tokens, SEO meta (Next metadata)
+**Acceptance:** หน้า landing แสดงครบทุก section, CTA → product selection, Lighthouse ≥90
+**Deliverable:** landing page
+
+---
+
 # 🔒 Security Gate (📘 BP §Security Checklist — ตรวจก่อน go-live)
 
 ทำเป็น acceptance ของ task ที่เกี่ยว ไม่ใช่ task แยก:
@@ -467,6 +500,8 @@ task21 ─ task22 ─┬─ task23
                  │          └─ task29 (← task28)
                  └─ task31
 task28 (auth) ─ task29, task30
+task26,27,30 ─ task32 (invoice/notify)
+task5 ─ task33 (landing, post-MVP)
 ```
 
-**ลำดับ build ปลอดภัย:** 1→20 (MVP-1) → 21→22 (DB) → 23→24 (persist) → 25 (pricing) → 28 (auth) → 26→27 (order/pay) → 31 (storage) → 29→30 (dashboards)
+**ลำดับ build ปลอดภัย:** 1→20 (MVP-1) → 21→22 (DB) → 23→24 (persist) → 25 (pricing) → 28 (auth) → 26→27 (order/pay) → 31 (storage) → 29→30 (dashboards) → 32 (invoice/notify) → 33 (landing)
