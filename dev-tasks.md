@@ -1,54 +1,66 @@
-# DEV TASKS — Custom Merch Platform MVP-1
+# DEV TASKS — Custom Merch Platform (Full-Stack)
 
 > **วิธีใช้:** สั่ง `dev task1`, `dev task2` … ทีละอัน AI ทำเฉพาะ task นั้นจนจบแล้วส่งมอบ
-> **อ้างอิง:** `task.md` (build plan) + `custom_merch_platform_blueprint_v2.md`
+> **Source of truth:** ไฟล์นี้คือ task หลัก — ระบุ frontend + backend + database ครบ
+> **Blueprint:** `custom_merch_platform_blueprint_v2.md` = บริบท/domain model/schema/pricing/security
+> อ้างอิงด้วยป้าย `📘 BP §<หัวข้อ>` เมื่อจำเป็น — **แต่ stack จริงตามไฟล์นี้** (ดู Architecture Decisions)
+
 > **กติกาทุก task:**
 > - แต่ละ task มี **Deliverable** ที่ทำงานได้จริง (รัน/เห็นผลได้) ไม่ใช่โค้ดครึ่งๆ
 > - ทำตาม **Files**, **Depends on**, **Acceptance** ที่ระบุ
 > - TypeScript strict, ไม่มี `any`, ไม่ทิ้ง TODO ที่ทำให้ feature พัง
-> - หลังทำเสร็จ: commit ด้วยข้อความ `taskN: <สรุป>` และระบุว่าทดสอบยังไง
-> - ถ้า task ไหนต้องการ asset (รูป mockup) ที่ยังไม่มี → ใช้ placeholder ที่ระบุ และโน้ตไว้
+> - หลังทำเสร็จ: commit `taskN: <สรุป>` และระบุว่าทดสอบยังไง
+> - asset ที่ยังไม่มี → ใช้ placeholder ที่ระบุ และโน้ตไว้
+> - **อย่าหยิบงานจาก Deferred section** (ท้ายไฟล์) — over-engineer
 
 ---
 
-## MVP-1 Scope (ย้ำ)
-เลือกแบบเสื้อ (คอกลม/คอวี · ขาว/ดำ) → Canvas Editor แบบ Canva (text + Google Fonts, upload SVG/image, edit เต็มที่, front/back, เปลี่ยนสี) → ส่งแบบเข้าอีเมล admin
+# ⚙️ Architecture Decisions (อ่านก่อน — ทำไม stack ต่างจาก blueprint)
 
-**ลำดับแนะนำ:** task1 → task20 ตามลำดับ (มี dependency)
+| เรื่อง | blueprint v2 | **ที่ใช้จริง** | เหตุผล |
+|------|-------------|--------------|--------|
+| Backend | Python FastAPI (แยก service) | **Next.js Route Handlers** (`app/api/v1/*`) | stack เดียว (TS), deploy ที่เดียว, ไม่ต้อง maintain 2 ภาษา |
+| ORM | SQLAlchemy + Alembic | **Prisma** | typed client + migration ในตัว, เข้ากับ TS |
+| Validation | Pydantic v2 | **Zod** (share FE/BE) | มีใน stack แล้ว, schema ใช้ร่วมสองฝั่ง |
+| Pricing engine | Python | **TypeScript** (`src/lib/pricing.ts`) | เป็นเลขคณิตธรรมดา ไม่ต้องใช้ Python |
+| Task queue (Celery+Redis) | บังคับ | **Next `after()` / bg** จนกว่าจะจำเป็น | ดู Deferred |
+| DB / Auth / Storage / Email | Postgres / Clerk / R2 / Resend | **เหมือน blueprint** | ตามเดิม |
+
+> domain model, DB schema, pricing logic, API contract, security checklist → **ยึดตาม blueprint** (แค่เปลี่ยนภาษา/เครื่องมือ)
+
+---
+
+# 🗺️ Phase Overview
+
+| Phase | Group | Tasks | ผลลัพธ์ |
+|-------|-------|-------|--------|
+| **MVP-1** | A–G | task1–20 | Frontend editor + ส่งแบบเข้าอีเมล (ไม่มี DB) |
+| **Backend** | H | task21–22 | DB + Prisma schema |
+| **Persist** | I | task23–24 | Products + Designs ลง DB |
+| **Commerce** | J–K | task25–27 | Pricing + Orders + Payment |
+| **Account** | L–M | task28–30 | Auth + Customer/Admin dashboard |
+| **Assets** | N | task31 | R2 storage |
 
 ---
 
 # 🏗️ GROUP A — Foundation (task1–4)
 
-## task1 — Project Scaffold + Tooling
-**Goal:** ตั้งโปรเจกต์ Next.js 15 ให้รันได้ พร้อม strict TS + Tailwind v4 + shadcn
+> 📘 BP §Tech Stack, §UX/UI Design Direction
 
-**Files:**
-- `package.json`, `tsconfig.json`, `next.config.ts`, `app/layout.tsx`, `app/page.tsx`, `app/globals.css`
-
-**รายละเอียด (Senior view):**
-- `create-next-app` (App Router, TS, Tailwind, ESLint, src dir)
-- `tsconfig`: เปิด `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`
-- ติดตั้ง shadcn (`npx shadcn@latest init`) + เพิ่ม `button`, `dialog`, `input`, `select`, `label`, `sonner` (toast)
-- ใส่ design tokens ใน `globals.css` (`--color-primary/accent/surface`, `--radius-base`)
-- ตั้ง path alias `@/*`
-- `app/page.tsx` แสดง placeholder "Merch Platform" ชั่วคราว
-
-**Acceptance:**
-- [ ] `npm run dev` รันได้ ไม่มี error, เปิด `localhost:3000` เห็นหน้า
-- [ ] `npm run build` ผ่าน
-- [ ] `npx tsc --noEmit` ผ่าน (ไม่มี type error)
-
-**Deliverable:** repo ที่ clone แล้ว `npm i && npm run dev` ใช้ได้ทันที
+## task1 — Project Scaffold + Tooling ✅ (เสร็จแล้ว)
+**Goal:** Next.js + strict TS + Tailwind v4 + shadcn รันได้
+**Files:** `package.json`, `tsconfig.json`, `next.config.ts`, `app/layout.tsx`, `app/page.tsx`, `app/globals.css`
+- App Router, TS strict (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
+- shadcn + `button dialog input select label sonner`
+- design tokens ใน `globals.css` (`--color-primary/accent/surface`, `--radius-base`)
+**Acceptance:** `npm run dev` / `npm run build` / `tsc --noEmit` ผ่านหมด
 
 ---
 
 ## task2 — Type Definitions + Domain Models
-**Goal:** นิยาม type กลางทั้งหมดที่ทุก feature ใช้ร่วมกัน (single source of truth)
-
+**Goal:** type กลางที่ทุก feature ใช้ร่วม (single source of truth)
 **Files:** `src/types/editor.ts`, `src/types/product.ts`
-
-**รายละเอียด:**
+**Depends on:** task1
 ```ts
 // product.ts
 export type NeckType = 'crew' | 'v-neck';
@@ -65,226 +77,120 @@ export interface DesignState {
   fontsUsed: string[];
   updatedAt: string;
 }
-export interface ContactInfo {
-  name: string; phone: string; quantity: number; notes?: string;
-}
+export interface ContactInfo { name: string; phone: string; quantity: number; notes?: string; }
 ```
-- ใช้ `Side`, `NeckType` ฯลฯ ทุกที่ ห้าม magic string
-
-**Acceptance:**
-- [ ] type ครบตาม blueprint, `tsc --noEmit` ผ่าน
-- [ ] ไม่มีไฟล์อื่น import string literal ('crew' ตรงๆ) — ใช้ type แทน
-
-**Deliverable:** type layer พร้อมให้ task ถัดไป import
+> 📘 BP §Revised Database Schema — ให้ type สอดคล้องกับ `designs.canvas_json` (migrate ไป Prisma ง่าย, task22)
+**Acceptance:** type ครบ, `tsc --noEmit` ผ่าน, ไม่มี magic string ('crew' ตรงๆ) ที่อื่น
+**Deliverable:** type layer พร้อม import
 
 ---
 
 ## task3 — Zustand Stores (Product + Editor)
-**Goal:** state management แยก domain
-
+**Goal:** state แยก domain
 **Files:** `src/stores/useProductStore.ts`, `src/stores/useEditorStore.ts`
 **Depends on:** task2
-
-**รายละเอียด:**
-- `useProductStore`: `{ neckType, color, setNeckType, setColor }` default `crew` + `white`
-- `useEditorStore`: `{ activeSide, frontJSON, backJSON, fontsUsed, addFont(), saveSide(side, json), getDesignState(), loadDesign(state), reset() }`
-- ห้าม single global store (แยกตาม blueprint)
-- เขียนให้ pure — ไม่แตะ Fabric/DOM ใน store
-
-**Acceptance:**
-- [ ] import store ใน component ได้, set/get ค่าได้
-- [ ] เขียน unit test เล็กๆ (Vitest) ทดสอบ setQuantity/saveSide อย่างน้อย 2 เคส
-- [ ] `tsc --noEmit` ผ่าน
-
+- `useProductStore`: `{ neckType, color, setNeckType, setColor }` default `crew`+`white`
+- `useEditorStore`: `{ activeSide, frontJSON, backJSON, fontsUsed, addFont(), saveSide(side,json), getDesignState(), loadDesign(state), reset() }`
+- ห้าม single global store · store ต้อง pure (ไม่แตะ Fabric/DOM)
+**Acceptance:** set/get ได้, Vitest ≥2 เคส, `tsc` ผ่าน
 **Deliverable:** stores ที่ test ผ่าน
 
 ---
 
 ## task4 — Shirt Templates Config + Mockup Assets
-**Goal:** config mockup เสื้อ 4 แบบ + print area
-
-**Files:** `src/lib/shirt-templates.ts`, `public/mockups/*.png`
+**Goal:** config mockup 4 แบบ + print area
+**Files:** `src/lib/shirt-templates.ts`, `public/mockups/*`
 **Depends on:** task2
-
-**รายละเอียด:**
-- map `${neckType}-${color}` → `{ front, back, printArea }` ครบ 4 ชุด (crew-white/black, v-neck-white/black)
-- ถ้ายังไม่มีรูปจริง: สร้าง placeholder PNG (เสื้อ outline เรียบๆ พื้นโปร่งใส) หรือ SVG ชั่วคราว + โน้ตว่าให้แทนที่ด้วย asset จริง
+- map `${neckType}-${color}` → `{ front, back, printArea }` ครบ 4 ชุด
+- ยังไม่มีรูปจริง → placeholder SVG เสื้อ outline + โน้ตให้แทนทีหลัง
 - `getTemplate(neckType, color, side)` helper
-
-**Acceptance:**
-- [ ] เรียก `getTemplate('crew','white','front')` ได้ path + printArea ถูกต้อง
-- [ ] รูป (หรือ placeholder) โหลดได้จาก `/mockups/...`
-
-**Deliverable:** config + asset พร้อมใช้ใน editor
+**Acceptance:** `getTemplate('crew','white','front')` คืน path+printArea ถูก, รูปโหลดได้
+**Deliverable:** config + asset พร้อมใช้
 
 ---
 
 # 🎨 GROUP B — Product Selection (task5)
 
 ## task5 — Product Selection Page
-**Goal:** หน้าแรกเลือกทรงคอ + สี แล้วไป editor
-
+> 📘 BP §Product Catalog (MVP: running shirts)
+**Goal:** หน้าแรกเลือกทรงคอ + สี → editor
 **Files:** `src/app/page.tsx`, `src/components/product/ShirtPicker.tsx`
 **Depends on:** task3, task4
-
-**รายละเอียด (Senior view):**
-- เลือกทรงคอ (คอกลม/คอวี) เป็นการ์ดมีรูป mockup, สี (ขาว/ดำ) เป็น swatch
-- selected state ชัด (border accent), update `useProductStore`
-- ปุ่ม "เริ่มออกแบบ →" → `router.push('/editor')`
-- responsive (mobile stack, desktop grid)
-- ใช้ shadcn + design tokens
-
-**Acceptance:**
-- [ ] เลือกทรง+สีได้ เห็น selection ชัด
-- [ ] state ถูกบันทึกใน store (เช็คด้วย devtools)
-- [ ] กดปุ่มไป `/editor` ได้
-- [ ] ดูดีทั้ง mobile + desktop
-
-**Deliverable:** หน้าแรกใช้งานได้จริง
+- การ์ดทรงคอ (มี mockup) + swatch สี, selected state ชัด → update `useProductStore`
+- ปุ่ม "เริ่มออกแบบ →" → `router.push('/editor')`, responsive, ใช้ design tokens
+> หมายเหตุ: MVP-1 ใช้ template static; ต่อ API จริงใน task23
+**Acceptance:** เลือกได้ + state ลง store + ไป `/editor` + responsive
+**Deliverable:** หน้าแรกใช้งานได้
 
 ---
 
 # 🖼️ GROUP C — Canvas Core (task6–9)
 
 ## task6 — Fabric.js Canvas Bootstrap
-**Goal:** วาง canvas + mockup เป็น background ตาม product
-
+**Goal:** วาง canvas + mockup background ตาม product
 **Files:** `src/app/editor/page.tsx`, `src/components/editor/EditorCanvas.tsx`, `src/lib/fabric-helpers.ts`
 **Depends on:** task3, task4
-
-**รายละเอียด:**
-- `editor/page.tsx` = `"use client"`
-- init `new Canvas(ref)` ใน `useEffect`, **dispose ตอน unmount** (กัน memory leak)
-- โหลด mockup ตาม `useProductStore` เป็น background (non-selectable, non-evented)
-- กำหนด canvas size responsive, รักษา aspect ratio
-- ⚠️ Fabric v6 ESM import: `import { Canvas, FabricImage } from 'fabric'`
-
-**Acceptance:**
-- [ ] เปิด `/editor` เห็นเสื้อ mockup บน canvas
-- [ ] ไม่มี console error, unmount แล้วไม่ leak (เปลี่ยนหน้าไปกลับได้)
-- [ ] ถ้าเข้าตรงๆ โดยไม่เลือก product → fallback default (crew/white)
-
-**Deliverable:** canvas ที่แสดงเสื้อได้
+- `editor/page.tsx` = `"use client"`; init `new Canvas(ref)` ใน `useEffect`, **dispose ตอน unmount**
+- mockup background (non-selectable), responsive + รักษา aspect ratio
+- ⚠️ Fabric v6 ESM: `import { Canvas, FabricImage } from 'fabric'`
+**Acceptance:** เห็นเสื้อบน canvas, ไม่มี console error, ไม่ leak, เข้าตรงๆ fallback crew/white
+**Deliverable:** canvas แสดงเสื้อได้
 
 ---
 
 ## task7 — Print Area Boundary + Object Clipping
-**Goal:** จำกัดให้ object อยู่ในกรอบพิมพ์
-
-**Files:** `src/lib/fabric-helpers.ts`, `EditorCanvas.tsx`
+**Goal:** จำกัด object ในกรอบพิมพ์
+**Files:** `fabric-helpers.ts`, `EditorCanvas.tsx`
 **Depends on:** task6
-
-**รายละเอียด:**
-- วาดกรอบ print area (เส้นประจางๆ) ตาม `printArea` จาก template
-- จำกัด object ไม่ให้ลากออกนอกกรอบ (clip path หรือ `object:moving` handler)
-- helper `addToCanvas(obj)` ที่ place object กลางกรอบ + scale พอดี
-
-**Acceptance:**
-- [ ] เห็นกรอบพิมพ์บนเสื้อ
-- [ ] ลาก object ออกนอกกรอบไม่ได้ (หรือถูก clip)
-
-**Deliverable:** ระบบกรอบพิมพ์ทำงาน
+- วาดกรอบ print area (เส้นประจาง), จำกัดลากออกนอกกรอบ, helper `addToCanvas(obj)` place กลาง+scale พอดี
+**Acceptance:** เห็นกรอบ, object ออกนอกกรอบไม่ได้
+**Deliverable:** ระบบกรอบพิมพ์
 
 ---
 
 ## task8 — Object Manipulation (move/resize/rotate/delete)
-**Goal:** แก้ไข object แบบ Canva
-
+**Goal:** แก้ object แบบ Canva
 **Files:** `EditorCanvas.tsx`, `src/components/editor/LayerControls.tsx`
 **Depends on:** task7
-
-**รายละเอียด:**
-- selection handles (Fabric built-in): resize มุม, rotate handle
-- keyboard: `Delete`/`Backspace` ลบ, arrow keys ขยับ, `Ctrl/Cmd+D` duplicate
-- `LayerControls`: bring forward / send backward / duplicate / delete / lock
-- handle เฉพาะตอนมี active object (ไม่ลบตอนพิมพ์ข้อความ — ระวัง edit mode)
-
-**Acceptance:**
-- [ ] move/resize/rotate ด้วยเมาส์ได้
-- [ ] Delete ลบ object ได้ (แต่ไม่ลบตอนกำลังแก้ข้อความ)
-- [ ] layer order เปลี่ยนได้
-
-**Deliverable:** ครบเครื่องมือแก้ไข object
+- selection handles, keyboard (`Delete`/arrow/`Cmd+D`), LayerControls (forward/back/duplicate/delete/lock)
+- ⚠️ ไม่ลบ object ตอนกำลัง edit ข้อความ
+**Acceptance:** move/resize/rotate/delete/layer ครบ (ไม่ลบตอนพิมพ์)
+**Deliverable:** เครื่องมือแก้ไขครบ
 
 ---
 
 ## task9 — Layout Shell (Toolbar / Canvas / Right Panel)
-**Goal:** โครง UI editor 3 ส่วนแบบ Canva
-
+**Goal:** โครง UI editor 3 ส่วน
 **Files:** `editor/page.tsx`, `src/components/editor/Toolbar.tsx`
 **Depends on:** task6
-
-**รายละเอียด:**
-- left toolbar (เพิ่ม text/upload), center canvas, right panel (contextual properties)
-- right panel เปลี่ยนตาม object ที่เลือก (ว่าง / text / image)
-- responsive: mobile = canvas เต็มจอ + bottom sheet สำหรับ tools
-- ใช้ design tokens, micro-interactions ลื่น
-
-**Acceptance:**
-- [ ] เห็น layout 3 ส่วนชัดบน desktop
-- [ ] right panel ตอบสนองตาม selection
-- [ ] mobile ใช้งานได้ (อย่างน้อยดู+เลือก object)
-
-**Deliverable:** editor shell พร้อมเสียบ feature
+- left toolbar / center canvas / right panel (contextual ตาม object), mobile = bottom sheet
+**Acceptance:** layout 3 ส่วนชัด, right panel ตาม selection, mobile ใช้ได้
+**Deliverable:** editor shell
 
 ---
 
 # ✍️ GROUP D — Text & Fonts (task10–12)
 
 ## task10 — Add & Edit Text
-**Goal:** เพิ่ม/แก้ข้อความบนเสื้อ
-
 **Files:** `Toolbar.tsx`, `EditorCanvas.tsx`, `src/components/editor/TextPanel.tsx`
 **Depends on:** task8, task9
-
-**รายละเอียด:**
-- ปุ่ม "เพิ่มข้อความ" → `Textbox('แตะเพื่อแก้ไข')` กลางกรอบ
-- double-click = inline edit
-- `TextPanel`: size, color, bold/italic, align
-- sync ค่ากับ object ที่เลือก (สองทาง)
-
-**Acceptance:**
-- [ ] เพิ่มข้อความได้, double-click แก้ได้
-- [ ] เปลี่ยน size/color/align เห็นผลทันที
-
-**Deliverable:** text editing ใช้งานได้
-
----
+- ปุ่ม "เพิ่มข้อความ" → `Textbox` กลางกรอบ; double-click edit; TextPanel: size/color/bold/italic/align (sync 2 ทาง)
+**Acceptance:** เพิ่ม/แก้ได้, เปลี่ยน size/color/align เห็นผลทันที
+**Deliverable:** text editing
 
 ## task11 — Google Fonts Loader
-**Goal:** โหลด Google Font แบบ dynamic + รอโหลดเสร็จก่อน apply
-
 **Files:** `src/lib/google-fonts.ts`
 **Depends on:** task1
+- `loadGoogleFont(family)`: inject `<link>` + `await document.fonts.load()` (ไม่งั้น render ก่อนฟอนต์มา = fallback), cache กันซ้ำ
+- curated ~30–50 ฟอนต์ รวม **ไทย: Kanit, Prompt, Sarabun, Noto Sans Thai, Mitr, Chakra Petch**
+**Acceptance:** `loadGoogleFont('Kanit')` → `document.fonts.check('16px Kanit')`=true, ไม่ inject ซ้ำ
+**Deliverable:** font loader
 
-**รายละเอียด:**
-- `loadGoogleFont(family)`: inject `<link>` + `await document.fonts.load(...)` (สำคัญ — ไม่งั้น render ก่อนฟอนต์มาถึง = fallback)
-- กันโหลดซ้ำ (cache set ของ family ที่โหลดแล้ว)
-- curated list ~30–50 ฟอนต์ รวม **ไทย: Kanit, Prompt, Sarabun, Noto Sans Thai, Mitr, Chakra Petch**
-
-**Acceptance:**
-- [ ] เรียก `loadGoogleFont('Kanit')` แล้ว `document.fonts.check('16px Kanit')` = true
-- [ ] โหลดซ้ำ family เดิมไม่ inject link ซ้ำ
-
-**Deliverable:** font loader พร้อมใช้
-
----
-
-## task12 — Font Picker UI + Apply to Text
-**Goal:** เลือกฟอนต์จาก dropdown แล้ว apply กับ text object
-
+## task12 — Font Picker UI + Apply
 **Files:** `src/components/editor/FontPicker.tsx`, `TextPanel.tsx`
 **Depends on:** task10, task11
-
-**รายละเอียด:**
-- dropdown แสดงชื่อฟอนต์ (ถ้าทำได้ preview ด้วยฟอนต์จริง)
-- เลือก → `await loadGoogleFont()` → `obj.set('fontFamily', family)` → `requestRenderAll()` → `useEditorStore.addFont(family)`
-- โชว์ loading ระหว่างโหลดฟอนต์
-
-**Acceptance:**
-- [ ] เปลี่ยนฟอนต์ (รวมไทย) เห็นผลบน canvas ทันที
-- [ ] family ถูกบันทึกใน `fontsUsed`
-
+- dropdown → `await loadGoogleFont()` → `obj.set('fontFamily')` → `requestRenderAll()` → `addFont()`; loading state
+**Acceptance:** เปลี่ยนฟอนต์ (รวมไทย) เห็นผลทันที, บันทึกใน `fontsUsed`
 **Deliverable:** เปลี่ยนฟอนต์ได้ครบ
 
 ---
@@ -292,59 +198,26 @@ export interface ContactInfo {
 # 🖼️ GROUP E — Images & Sides (task13–15)
 
 ## task13 — Upload Image (PNG/JPG)
-**Goal:** อัปโหลดรูปวางบนเสื้อ
-
-**Files:** `Toolbar.tsx`, `src/lib/fabric-helpers.ts`
+> 📘 BP §Security Checklist (File Upload)
+**Files:** `Toolbar.tsx`, `fabric-helpers.ts`
 **Depends on:** task7
-
-**รายละเอียด:**
-- input รับ `.png .jpg`, validate ≤ 20MB + **magic bytes** (ไม่เชื่อ extension อย่างเดียว — security)
-- `FabricImage.fromURL` → place กลางกรอบ, scale พอดี
-- error toast ถ้าไฟล์ผิด/ใหญ่เกิน
-
-**Acceptance:**
-- [ ] อัปโหลด PNG/JPG วางบนเสื้อได้
-- [ ] ไฟล์ผิดประเภท/ใหญ่เกิน → reject พร้อม toast
-
-**Deliverable:** image upload ใช้งานได้
-
----
+- รับ `.png .jpg`, validate ≤20MB + **magic bytes** (ไม่เชื่อ extension), `FabricImage.fromURL` place+scale, error toast
+**Acceptance:** อัปโหลดได้, ไฟล์ผิด/ใหญ่เกิน → reject+toast
+**Deliverable:** image upload
 
 ## task14 — Upload & Render SVG
-**Goal:** รองรับ SVG (vector คมชัด)
-
 **Files:** `Toolbar.tsx`, `fabric-helpers.ts`
 **Depends on:** task13
-
-**รายละเอียด:**
-- `loadSVGFromString` → group เป็น object เดียว → place + scale
-- sanitize SVG (กัน script injection)
-- จัดการ SVG ที่ไม่มี viewBox / ขนาดแปลก
-
-**Acceptance:**
-- [ ] อัปโหลด SVG แล้วแสดงคมชัด แก้ไข (resize/rotate) ได้
-- [ ] SVG อันตราย (มี script) ถูก sanitize
-
+- `loadSVGFromString` → group, **sanitize** (กัน script injection), จัดการ SVG ไม่มี viewBox
+**Acceptance:** SVG แสดงคมชัด+แก้ได้, SVG อันตรายถูก sanitize
 **Deliverable:** SVG support
 
----
-
-## task15 — Front/Back Toggle + Shirt Color/Neck Switch
-**Goal:** สลับด้าน + เปลี่ยนสี/ทรงคอ โดยไม่หาย design
-
+## task15 — Front/Back Toggle + Color/Neck Switch
 **Files:** `editor/page.tsx`, `Toolbar.tsx`, `useEditorStore.ts`
 **Depends on:** task6, task8
-
-**รายละเอียด:**
-- toggle front/back: `saveSide(current)` ก่อนสลับ แล้ว load อีกด้าน (เก็บ 2 JSON แยก)
-- เปลี่ยนสีเสื้อ (ขาว/ดำ) → เปลี่ยน background mockup ทันที (object คงอยู่)
-- เปลี่ยนทรงคอ → เปลี่ยน mockup ตาม
-- ⚠️ ตอน restore ด้านต้อง re-load fonts ที่ใช้
-
-**Acceptance:**
-- [ ] สลับ front/back แล้ว design แต่ละด้านคงอยู่
-- [ ] เปลี่ยนสี/ทรงคอ preview สดทันที object ไม่หาย
-
+- toggle: `saveSide(current)` ก่อนสลับ → load อีกด้าน (2 JSON แยก); เปลี่ยนสี/ทรงคอ → เปลี่ยน background ทันที (object คงอยู่)
+- ⚠️ restore ด้านต้อง re-load fonts ที่ใช้
+**Acceptance:** สลับด้าน design คงอยู่, เปลี่ยนสี/ทรงคอ preview สด object ไม่หาย
 **Deliverable:** multi-side + variant switching
 
 ---
@@ -352,64 +225,30 @@ export interface ContactInfo {
 # 💾 GROUP F — Persist & Submit (task16–18)
 
 ## task16 — Save / Load Design (localStorage)
-**Goal:** บันทึก + กู้คืน design (เตรียม reorder ในอนาคต)
-
 **Files:** `useEditorStore.ts`, `src/lib/design-storage.ts`
 **Depends on:** task15, task11
-
-**รายละเอียด:**
-- save: `getDesignState()` (front+back JSON + product + fontsUsed) → localStorage
-- load: restore ทั้งสองด้าน + **re-load ทุกฟอนต์ใน `fontsUsed` ก่อน `renderAll`** (ไม่งั้นฟอนต์ fallback)
-- schema ตรงกับ `designs.canvas_json` ใน blueprint (migrate ไป DB ง่าย)
-
-**Acceptance:**
-- [ ] save แล้ว reload หน้า → design กลับมาเหมือนเดิม (ฟอนต์ถูกต้อง)
-- [ ] JSON structure match blueprint
-
-**Deliverable:** persistence ทำงานข้าม reload
-
----
+- save `getDesignState()` → localStorage; load restore 2 ด้าน + **re-load ทุกฟอนต์ก่อน `renderAll`**
+- schema ตรงกับ `designs.canvas_json` (📘 BP §Schema) → migrate ไป DB ง่าย (task24)
+**Acceptance:** reload หน้า design กลับมาเหมือนเดิม (ฟอนต์ถูก), JSON match schema
+**Deliverable:** persistence ข้าม reload
 
 ## task17 — Export Preview PNG
-**Goal:** export รูป preview front/back ความละเอียดสูง
-
-**Files:** `src/lib/fabric-helpers.ts`, `Toolbar.tsx`
+**Files:** `fabric-helpers.ts`, `Toolbar.tsx`
 **Depends on:** task15
-
-**รายละเอียด:**
-- `exportSide(side)`: switch ไปด้านนั้น → `toDataURL({format:'png', multiplier:2})`
-- export ทั้ง front+back โดยไม่รบกวน view ปัจจุบัน (render off-screen หรือ save/restore active side)
-- ปุ่ม download (สำหรับ user ดูเอง)
-
-**Acceptance:**
-- [ ] ได้ PNG ทั้ง 2 ด้าน คมชัด (รวม background เสื้อ)
-- [ ] export แล้ว canvas กลับมาเหมือนเดิม
-
-**Deliverable:** export ใช้งานได้ — เป็น input ของ task18
-
----
+- `exportSide(side)`: `toDataURL({format:'png', multiplier:2})` ทั้ง front+back โดยไม่รบกวน view, ปุ่ม download
+**Acceptance:** PNG 2 ด้านคมชัด (รวม background), export แล้ว canvas เหมือนเดิม
+**Deliverable:** export — input ของ task18
 
 ## task18 — Submit Design to Admin (API Route + Resend)
-**Goal:** ส่งแบบ + ข้อมูลผู้สั่ง เข้าอีเมล admin
-
+> 📘 BP §Email/Notification, §Security
 **Files:** `src/app/api/submit-design/route.ts`, `src/components/editor/SubmitDialog.tsx`, `src/lib/admin-config.ts`, `.env.local`
 **Depends on:** task17
-
-**รายละเอียด (Senior view):**
-- `SubmitDialog`: ฟอร์ม ชื่อ/เบอร์/จำนวน/หมายเหตุ + validate เบอร์ไทย `/^0[0-9]{9}$/`
+- `SubmitDialog`: ชื่อ/เบอร์/จำนวน/หมายเหตุ + validate เบอร์ไทย `/^0[0-9]{9}$/`
 - กดส่ง → export front+back PNG → POST `/api/submit-design`
-- API route (server): validate payload ด้วย zod, จำกัดขนาดรูป, ส่งด้วย Resend ไป `process.env.ADMIN_EMAIL`
-- `ADMIN_EMAIL=sirichai.basz@gmail.com` อยู่ใน `.env.local` (ไม่ hardcode ในโค้ด)
-- `RESEND_API_KEY` ฝั่ง server เท่านั้น
-- ⚠️ dev ใช้ `from: onboarding@resend.dev`; production ต้อง verify domain
-- loading + success/error toast, กันกดซ้ำ (disable ระหว่างส่ง)
-
-**Acceptance:**
-- [ ] กรอกฟอร์ม → admin (sirichai.basz@gmail.com) ได้อีเมลแนบ front/back PNG + ข้อมูลครบ
-- [ ] เบอร์ผิด format → block ไม่ส่ง
-- [ ] API key ไม่ leak ฝั่ง client (เช็ค network/bundle)
-- [ ] ส่งซ้ำระหว่างรออยู่ไม่ได้
-
+- API (server): validate ด้วย **Zod**, จำกัดขนาดรูป, ส่ง Resend ไป `process.env.ADMIN_EMAIL` (=`sirichai.basz@gmail.com`, อยู่ใน env ไม่ hardcode)
+- `RESEND_API_KEY` ฝั่ง server เท่านั้น; dev ใช้ `from: onboarding@resend.dev`
+- loading + toast, กันกดซ้ำ
+**Acceptance:** admin ได้อีเมลแนบ front/back + ข้อมูลครบ, เบอร์ผิด block, key ไม่ leak client, กันส่งซ้ำ
 **Deliverable:** end-to-end ส่งแบบเข้าอีเมลได้จริง
 
 ---
@@ -417,67 +256,202 @@ export interface ContactInfo {
 # ✅ GROUP G — Polish & QA (task19–20)
 
 ## task19 — Responsive Polish + Empty/Error/Loading States
-**Goal:** เก็บงาน UX ให้ production-ready
-
-**Files:** ทุก component ที่เกี่ยวข้อง
-**Depends on:** task5–18
-
-**รายละเอียด:**
-- mobile/tablet: editor ใช้งานได้จริง (toolbar เป็น bottom sheet, canvas pinch-zoom พอเหมาะ)
-- empty state (ยังไม่มี object), loading (โหลดฟอนต์/ส่งอีเมล), error (อัปโหลด/ส่งล้มเหลว)
-- micro-interactions, focus states, keyboard accessibility ขั้นพื้นฐาน
-- ตรวจ design tokens สม่ำเสมอทั้งแอป
-
-**Acceptance:**
-- [ ] ใช้งานลื่นบน mobile + desktop ไม่มี layout แตก
-- [ ] ทุก async action มี loading/error feedback
-- [ ] Lighthouse (desktop) ≥ 90
-
+**Files:** ทุก component ที่เกี่ยวข้อง · **Depends on:** task5–18
+- mobile editor ใช้ได้จริง (bottom sheet, pinch-zoom), empty/loading/error states, focus/keyboard a11y, design tokens สม่ำเสมอ
+**Acceptance:** ลื่นทั้ง mobile+desktop, async ทุกอันมี feedback, Lighthouse ≥90
 **Deliverable:** UX สมบูรณ์
 
----
-
 ## task20 — E2E Smoke Test + README + Cleanup
-**Goal:** การันตี flow หลัก + ส่งมอบโปรเจกต์
-
-**Files:** `tests/e2e/*.spec.ts` (Playwright), `README.md`
-**Depends on:** task1–19
-
-**รายละเอียด:**
-- Playwright E2E: เลือกเสื้อ → เพิ่มข้อความ+เปลี่ยนฟอนต์ → upload รูป → สลับด้าน → ส่งฟอร์ม (mock API)
-- `README.md`: setup, env ที่ต้องตั้ง (`RESEND_API_KEY`, `ADMIN_EMAIL`), วิธีรัน, วิธีแทน mockup asset จริง
-- ลบ dead code / console.log / unused deps
-- ยืนยัน `npm run build` + `tsc --noEmit` + lint ผ่านสะอาด
-
-**Acceptance:**
-- [ ] E2E happy path ผ่าน
-- [ ] README ทำตามแล้ว setup โปรเจกต์ได้จากศูนย์
-- [ ] build/type/lint ผ่านหมด ไม่มี warning ค้าง
-
-**Deliverable:** MVP-1 ส่งมอบได้จริง พร้อมต่อ Phase 2
+**Files:** `tests/e2e/*.spec.ts` (Playwright), `README.md` · **Depends on:** task1–19
+- E2E: เลือกเสื้อ → เพิ่มข้อความ+ฟอนต์ → upload → สลับด้าน → ส่งฟอร์ม (mock API)
+- README setup/env, ลบ dead code, `build`/`tsc`/lint สะอาด
+**Acceptance:** E2E happy path ผ่าน, setup จากศูนย์ได้, ไม่มี warning ค้าง
+**Deliverable:** **MVP-1 ส่งมอบได้จริง** ✅
 
 ---
 
-# 📋 Dependency Map (สรุป)
+# 🗄️ GROUP H — Backend Foundation (task21–22)
 
-```
-task1 ─┬─ task2 ─ task3 ─┬─ task5 ─────────────┐
-       │         task4 ──┘                     │
-       │                                        │
-       ├─ task6 ─ task7 ─ task8 ─ task9         │
-       │   │                                    │
-       │   └─ task15 ─ task16 ─ task17 ─ task18 │
-       │                                        │
-       ├─ task11 ─ task12 (ต้องมี task10 ก่อน)  │
-       │                                        │
-       └─ task10 ─ task13 ─ task14              │
-                                                 │
-   task19 (รวมทุกอย่าง) ─ task20 ───────────────┘
-```
+> 📘 BP §Database, §Revised Database Schema · stack: Next.js Route Handlers + Prisma + PostgreSQL
 
-**ลำดับ build ที่ปลอดภัยที่สุด:** 1→2→3→4→5→6→7→8→9→10→11→12→13→14→15→16→17→18→19→20
+## task21 — Prisma + PostgreSQL Setup
+**Goal:** ต่อ DB ได้ + migration workflow
+**Files:** `prisma/schema.prisma`, `src/lib/db.ts`, `.env`
+**Depends on:** task1
+- `npm i prisma @prisma/client` + `npx prisma init`; PostgreSQL (local Docker `postgres:16` หรือ Neon/Railway)
+- `src/lib/db.ts`: singleton `PrismaClient` (กัน hot-reload สร้างซ้ำ)
+- npm scripts: `db:migrate`, `db:studio`, `db:seed`
+- `DATABASE_URL` ใน `.env` (ไม่ commit)
+**Acceptance:** `prisma migrate dev` สร้าง DB ได้, client connect, query ว่างผ่าน, `tsc` ผ่าน
+**Deliverable:** DB layer พร้อม
+
+## task22 — Prisma Schema = Domain Model
+**Goal:** schema ตรงกับ blueprint
+**Files:** `prisma/schema.prisma`, migration
+**Depends on:** task21, task2
+- models ตาม 📘 BP §Schema: `User, Product, PricingRule, Design, Order, OrderItem, Payment`
+- enums: role/orderStatus/paymentStatus/printTechnique; `canvasJson Json`; indexes (user_id, status, created_at)
+- ให้สอดคล้องกับ `src/types` (task2) — design.canvasJson = DesignState
+**Acceptance:** migrate สร้างครบทุก table + FK + index, generated client typed, `tsc` ผ่าน
+**Deliverable:** DB schema ครบ
 
 ---
 
-# 🔧 Phase 2+ (นอก MVP-1 — อย่าเพิ่งทำ)
-Auth (Clerk) · บันทึก design ลง PostgreSQL/R2 · Pricing engine (FastAPI) · Checkout/PromptPay · Order dashboard · **Reorder** (loadFromJSON) · Admin dashboard
+# 📦 GROUP I — Products & Designs Persistence (task23–24)
+
+## task23 — Products API + Seed
+> 📘 BP §Products API, §Product Catalog
+**Goal:** product มาจาก DB จริง
+**Files:** `src/app/api/v1/products/route.ts`, `[id]/route.ts`, `prisma/seed.ts`
+**Depends on:** task22, task5
+- `GET /products` (list), `GET /products/{id}` (detail+colors); seed 3–5 running shirts (สี ≤6, base_cost)
+- frontend `ShirtPicker` (task5) อ่านจาก API แทน static (มี loading/error)
+**Acceptance:** list/detail คืนข้อมูล seed, หน้าเลือกเสื้อแสดงจาก DB
+**Deliverable:** product catalog จริง
+
+## task24 — Designs Persistence (เลิกพึ่ง localStorage)
+> 📘 BP §Designs API
+**Goal:** บันทึก/โหลด design ลง DB (รองรับ reorder)
+**Files:** `src/app/api/v1/designs/route.ts`, `[id]/route.ts`, `mine/route.ts`, `useEditorStore.ts`, `design-storage.ts`
+**Depends on:** task22, task16 · (ownership ต้องมี auth task28 — ก่อนหน้าใช้ guest)
+- `POST /designs` save `canvasJson + fontsUsed + product`; `GET/PUT /designs/{id}`; `GET /designs/mine`
+- เปลี่ยน save path ของ task16: authed → DB, guest → localStorage (fallback)
+- load ต้อง re-load fonts ก่อน render
+**Acceptance:** save → row ใน DB, โหลดจาก DB restore ถูก (ฟอนต์ครบ), JSON match schema
+**Deliverable:** design persistence จริง
+
+---
+
+# 💰 GROUP J — Pricing (task25)
+
+## task25 — Pricing Engine + Realtime Panel
+> 📘 BP §Real-time Pricing Engine, §Pricing Logic, §Pricing API (port Python → TS)
+**Goal:** คำนวณราคา realtime
+**Files:** `src/lib/pricing.ts`, `src/app/api/v1/pricing/calculate/route.ts`, `src/components/editor/PricingPanel.tsx`
+**Depends on:** task22, task9
+- `pricing.ts`: pure fn (quantity, technique dtf/silkscreen, front/back, rush) ใช้ `PricingRule` จาก DB → unit_price/subtotal/setup/total/production_days/discount
+- Zod schema share FE/BE; endpoint **public** (ไม่ต้อง login)
+- frontend panel: React Query (`staleTime` 5 นาที) + debounce, แสดงราคาทันที
+- 🔒 rate limit 100/min/IP (📘 BP §Security)
+**Acceptance:** Vitest คำนวณถูกหลายเคส, panel อัปเดต realtime, response <200ms
+**Deliverable:** pricing ใช้งานได้
+
+---
+
+# 🛒 GROUP K — Orders, Checkout & Payment (task26–27)
+
+## task26 — Orders API + Checkout Flow
+> 📘 BP §Orders API, §Checkout Flow, §Reorder System
+**Goal:** สร้าง order จาก design + pricing
+**Files:** `src/app/api/v1/orders/route.ts`, `[id]/route.ts`, `[id]/reorder/route.ts`, `src/app/checkout/page.tsx`, `CheckoutForm.tsx`
+**Depends on:** task24, task25
+- `POST /orders` (design+pricing+contact+size_breakdown S/M/L/XL), gen `order_number` (ORD-YYYY-####); `GET /orders/mine`, `GET /orders/{id}`; `POST /orders/{id}/reorder` clone design เป็น draft
+- checkout: RHF + Zod (เบอร์ไทย, ที่อยู่, event date, size breakdown)
+- 🔒 rate limit 10 orders/hr/user
+**Acceptance:** create order persist order+items, list/detail, reorder ได้ draft แก้ไขได้
+**Deliverable:** order + checkout จริง
+
+## task27 — Payment: PromptPay + Slip Upload
+> 📘 BP §Payments API, §Payment (MVP), §Security (File Upload)
+**Goal:** รับชำระเงิน
+**Files:** `src/app/api/v1/payments/[orderId]/upload-slip/route.ts`, `status/route.ts`, components
+**Depends on:** task26, task31 (R2 — ถ้ายังไม่ทำ เก็บ temp ก่อน)
+- gen PromptPay QR จาก total; upload slip (magic bytes, ≤5MB) → R2/temp; status `pending→reviewing→approved/rejected`
+**Acceptance:** QR render, slip validate ถูก, status อ่านได้
+**Deliverable:** payment flow
+
+---
+
+# 👤 GROUP L — Auth (task28)
+
+## task28 — Auth (Clerk)
+> 📘 BP §Authentication (มีตัวอย่าง `middleware.ts`)
+**Goal:** login + ownership + role
+**Files:** `src/middleware.ts`, `app/sign-in`, `app/sign-up`, `app/api/webhooks/clerk/route.ts`
+**Depends on:** task22
+- Clerk email/password + Google; protect `/dashboard`, `/admin` (role จาก metadata)
+- webhook upsert `User` ลง DB; ผูก designs/orders กับ user
+- ⚠️ ทุก protected API เช็ค ownership (`resource.userId === currentUser.id`)
+**Acceptance:** protected route redirect, webhook สร้าง User, ownership enforce ใน API
+**Deliverable:** auth ใช้งานได้
+
+---
+
+# 📊 GROUP M — Dashboards (task29–30)
+
+## task29 — Customer Dashboard + Reorder
+> 📘 BP §Order Dashboard, §Reorder System
+**Files:** `src/app/dashboard/page.tsx`, order detail, timeline
+**Depends on:** task26, task28
+- list orders + status timeline + preview + invoice link; ปุ่ม Reorder → editor พร้อม design (loadFromJSON)
+**Acceptance:** เห็น orders+status, reorder โหลด design กลับ editor
+**Deliverable:** customer dashboard
+
+## task30 — Admin Dashboard
+> 📘 BP §Admin API, §Admin Dashboard
+**Files:** `src/app/admin/*`, `src/app/api/v1/admin/*`
+**Depends on:** task26, task27, task28
+- order table (filter/search/paginate), update status, approve/reject payment, download artwork (presigned), production export (PDF/CSV)
+**Acceptance:** admin-only, update status, approve payment, export โหลดได้
+**Deliverable:** admin dashboard
+
+---
+
+# ☁️ GROUP N — Storage (task31)
+
+## task31 — Cloudflare R2 + Presigned URLs
+> 📘 BP §Storage
+**Goal:** เก็บไฟล์จริง (designs/slips/exports)
+**Files:** `src/lib/r2.ts`, wire designs/slips/exports
+**Depends on:** task21
+- S3 client → R2, bucket structure ตาม blueprint; **private + presigned URL เท่านั้น** (ห้าม expose bucket)
+- แทน base64 email attachment (task18) ด้วย preview URL ที่เก็บไว้
+**Acceptance:** upload คืน key, presigned GET ได้, ไม่มี public bucket
+**Deliverable:** storage layer
+
+---
+
+# 🔒 Security Gate (📘 BP §Security Checklist — ตรวจก่อน go-live)
+
+ทำเป็น acceptance ของ task ที่เกี่ยว ไม่ใช่ task แยก:
+- Rate limit: pricing (100/min/IP, task25), order create (10/hr/user, task26)
+- ทุก protected endpoint validate Clerk JWT + ownership — task28
+- File: magic bytes, size limit, presigned only — task13/27/31
+- Sanitize text input, ไม่ log เบอร์/ที่อยู่, HTTPS only — cross-cutting
+
+---
+
+# ⛔ Deferred — ห้ามทำจนกว่าจะมี trigger (กัน over-engineer)
+
+| ของ | blueprint อยากได้ | ทำเมื่อ |
+|-----|------------------|--------|
+| Celery + Redis queue | บังคับ | ใช้ Next `after()`/bg ไปก่อน — ทำ queue เมื่อ email/export block request หรือ volume สูงจริง |
+| Redis cache (pricing) | มี | เริ่มด้วย React Query + HTTP cache — เพิ่ม Redis เมื่อวัดแล้ว >200ms |
+| LINE Messaging API | phase 2 | MVP ใช้ LINE Notify (admin alert) พอ |
+| Multi-factory / Creator storefront / White-label SaaS | §Long-term | นอก scope — อย่าแตะ |
+| Embroidery, advanced typography, AI image gen, collaboration | — | นอก scope |
+
+---
+
+# 📋 Dependency Map
+
+```
+MVP-1 (frontend):
+task1 ─┬─ task2 ─ task3 ─┬─ task5
+       │         task4 ──┘
+       ├─ task6 ─ task7 ─ task8 ─ task9
+       │   └─ task15 ─ task16 ─ task17 ─ task18
+       ├─ task10 ─ task13 ─ task14
+       └─ task11 ─ task12
+   task19 (รวมทุกอย่าง) ─ task20  ← MVP-1 ส่งมอบ
+
+Full-stack:
+task21 ─ task22 ─┬─ task23
+                 ├─ task24 (← task16)
+                 ├─ task25 ─┬─ task26 ─ task27 (← task31)
+                 │          └─ task29 (← task28)
+                 └─ task31
+task28 (auth) ─ task29, task30
+```
+
+**ลำดับ build ปลอดภัย:** 1→20 (MVP-1) → 21→22 (DB) → 23→24 (persist) → 25 (pricing) → 28 (auth) → 26→27 (order/pay) → 31 (storage) → 29→30 (dashboards)
