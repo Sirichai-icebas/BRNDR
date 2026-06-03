@@ -23,7 +23,7 @@
 - [x] **task1** — Scaffold + Tooling (Next.js + TS strict + Tailwind v4 + shadcn) ✅
 - [ ] task2 — Type Definitions ← **next**
 - [ ] task3–4 · task5 · task6–9 · task10–12 · task13–15 · task16–18 · task19–20 (MVP-1)
-- [ ] task21–22 (DB) · task23–24 (persist) · task25 (pricing) · task26–27 (order/pay) · task28 (auth) · task29–30 (dashboards) · task31 (storage) · task32 (invoice/notify) · task33 (landing, post-MVP)
+- [ ] task21–22 (DB) · task23–24 (persist) · 🟡 task25 (pricing — `pricing.ts` config+calc เสร็จแล้ว, เหลือ DB/API/panel/test) · task26–27 (order/pay) · task28 (auth) · task29–30 (dashboards) · task31 (storage) · task32 (invoice/notify) · task33 (landing, post-MVP)
 
 **รวม 33 tasks · เสร็จ 1 · เหลือ 32**
 
@@ -342,15 +342,17 @@ export interface ContactInfo { name: string; phone: string; quantity: number; no
 
 # 💰 GROUP J — Pricing (task25)
 
-## task25 — Pricing Engine + Realtime Panel
+## task25 — Pricing Engine + Realtime Panel  🟡 เริ่มแล้วบางส่วน
 > 📘 BP §Real-time Pricing Engine, §Pricing Logic, §Pricing API (port Python → TS)
 **Goal:** คำนวณราคา realtime
 **Files:** `src/lib/pricing.ts`, `src/app/api/v1/pricing/calculate/route.ts`, `src/components/editor/PricingPanel.tsx`
 **Depends on:** task22, task9
-- `pricing.ts`: pure fn (quantity, technique dtf/silkscreen, front/back, rush) ใช้ `PricingRule` จาก DB → unit_price/subtotal/setup/total/production_days/discount
-- Zod schema share FE/BE; endpoint **public** (ไม่ต้อง login)
-- frontend panel: React Query (`staleTime` 5 นาที) + debounce, แสดงราคาทันที
-- 🔒 rate limit 100/min/IP (📘 BP §Security)
+- [x] **`src/lib/pricing.ts`** — config แก้ง่าย (`PRICING_CONFIG`) + `calculatePrice()` pure: size, จำนวนสี, หน้า/หลัง, ขนาดสกรีน, ส่วนลดจำนวน, งานด่วน, production days ✅ (commit `37fd2bd`)
+- [ ] ย้ายเรตจาก config → `PricingRule` ใน DB (task22) แต่คง logic เดิม
+- [ ] Zod schema share FE/BE; endpoint `/pricing/calculate` **public**
+- [ ] frontend `PricingPanel`: React Query (`staleTime` 5 นาที) + debounce, แสดงราคาทันที
+- [ ] 🔒 rate limit 100/min/IP (📘 BP §Security)
+- [ ] Vitest ครอบ `calculatePrice` หลายเคส
 **Acceptance:** Vitest คำนวณถูกหลายเคส, panel อัปเดต realtime, response <200ms
 **Deliverable:** pricing ใช้งานได้
 
